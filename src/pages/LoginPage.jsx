@@ -5,6 +5,7 @@ import ButtonForm from "../components/ButtonForm";
 import validateData from "../validate/validate";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import userStore from "../stores/user-store";
 
 export default function LoginPage() {
   const initialInput = {
@@ -17,13 +18,21 @@ export default function LoginPage() {
     password: "",
   };
 
+  const { login, authUser } = userStore();
+
+  console.log("authUser", authUser);
+
   const navigate = useNavigate();
 
   const [input, setInput] = useState(initialInput);
   const [inputError, setInputError] = useState(initialInputError);
 
+  const [errorAxios, setErrorAxios] = useState("");
+
   const hdChange = (e) => {
     setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setInputError((prev) => ({ ...prev, [e.target.name]: "" }));
+    setErrorAxios("");
   };
 
   const hdClickForm = async (e) => {
@@ -37,12 +46,14 @@ export default function LoginPage() {
         return setInputError(isError);
       }
 
-      // await Login(input)
+      await login(input);
 
       toast.success("login success");
-      //   navigate("/todo");
+      setInput(initialInput);
+      navigate("/todo");
     } catch (error) {
       console.log(error);
+      setErrorAxios(error.response.data);
     }
   };
 
@@ -67,7 +78,12 @@ export default function LoginPage() {
           hdChange={hdChange}
           errorInput={inputError.password}
           nameInput="password"
+          typeInput="password"
         />
+
+        {errorAxios && (
+          <small className="text-red-400 text-xs">{errorAxios}</small>
+        )}
 
         <ButtonForm textBtn="LOGIN" />
       </form>
